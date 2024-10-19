@@ -143,13 +143,27 @@
                 </form>
             `;
 
+            const responseContainer = newIdea.querySelector('#idea-response-container');
+
+            // عرض الردود المخزنة
+            const responses = JSON.parse(localStorage.getItem(`responses_${idea.id}`)) || [];
+            responses.forEach(response => {
+                const newResponse = document.createElement('div');
+                newResponse.classList.add('response');
+                newResponse.textContent = response;
+                responseContainer.appendChild(newResponse);
+            });
+
             const responseForm = newIdea.querySelector('.response-form');
             responseForm.addEventListener('submit', function (event) {
                 event.preventDefault();
                 const responseInput = newIdea.querySelector('.response-input');
                 const responseText = responseInput.value;
 
-                const responseContainer = newIdea.querySelector('#idea-response-container');
+                // تخزين الردود
+                responses.push(`${currentUser}: ${responseText}`);
+                localStorage.setItem(`responses_${idea.id}`, JSON.stringify(responses));
+
                 const newResponse = document.createElement('div');
                 newResponse.classList.add('response');
                 newResponse.textContent = `${currentUser}: ${responseText}`;
@@ -167,13 +181,15 @@
             const ideaText = ideaInput.value;
 
             const ideas = JSON.parse(localStorage.getItem('ideas')) || [];
-            ideas.push({ 
+            const newIdea = { 
+                id: Date.now(), // تعيين معرف فريد للفكرة
                 text: ideaText, 
                 user: currentUser 
-            });
+            };
+            ideas.push(newIdea);
             localStorage.setItem('ideas', JSON.stringify(ideas));
 
-            displayIdea({ text: ideaText, user: currentUser });
+            displayIdea(newIdea);
             ideaInput.value = '';
         });
 
