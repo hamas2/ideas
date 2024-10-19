@@ -8,10 +8,11 @@
     <style>
         body {
             font-family: Arial, sans-serif;
-            background-color: #f0f0f0;
-            color: #333;
+            background-color: #121212; /* لون خلفية الوضع الليلي */
+            color: #ffffff; /* لون النص في الوضع الليلي */
             margin: 0;
             padding: 20px;
+            transition: background-color 0.3s, color 0.3s; /* انتقالات سلسة */
         }
 
         header {
@@ -21,10 +22,10 @@
 
         #login-form, #idea-form {
             margin-bottom: 20px;
-            background: #fff;
+            background: #1e1e1e; /* لون خلفية للنماذج */
             padding: 20px;
             border-radius: 10px;
-            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
         }
 
         input, textarea {
@@ -33,6 +34,8 @@
             margin: 10px 0;
             border: 1px solid #ccc;
             border-radius: 5px;
+            background: #333; /* خلفية الحقول */
+            color: #fff; /* لون النص */
         }
 
         button {
@@ -54,15 +57,15 @@
         }
 
         .idea {
-            background-color: #fff;
+            background-color: #1e1e1e; /* لون خلفية للفكرة */
             padding: 15px;
             margin: 10px 0;
             border-radius: 10px;
-            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.5);
         }
 
         .response {
-            background-color: #f9f9f9;
+            background-color: #282828; /* لون خلفية للرد */
             padding: 5px;
             margin: 5px 0;
             border-radius: 5px;
@@ -72,13 +75,6 @@
             display: flex;
             flex-direction: column;
             margin-top: 10px;
-        }
-
-        .profile-pic {
-            width: 40px;
-            height: 40px;
-            border-radius: 50%;
-            margin-right: 10px;
         }
 
         .user-header {
@@ -91,9 +87,37 @@
             color: red;
             font-size: 0.9em;
         }
+
+        .dark-mode-toggle {
+            position: absolute;
+            top: 20px;
+            right: 70px;
+            background: none;
+            border: none;
+            color: white;
+            cursor: pointer;
+            font-size: 20px;
+        }
+
+        .logout-button {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background-color: #dc3545;
+            border: none;
+            color: white;
+            padding: 10px;
+            border-radius: 5px;
+            cursor: pointer;
+        }
     </style>
 </head>
 <body>
+    <button class="dark-mode-toggle" onclick="toggleDarkMode()">
+        <i class="fas fa-adjust"></i>
+    </button>
+    <button class="logout-button" id="logout-button" style="display: none;">تسجيل خروج</button>
+
     <header>
         <h1><i class="fas fa-lightbulb"></i> شارك أفكارك</h1>
     </header>
@@ -121,6 +145,7 @@
     <script>
         const ideasContainer = document.getElementById('ideas-container');
         const errorMessage = document.getElementById('error-message');
+        const logoutButton = document.getElementById('logout-button');
         let currentUser = localStorage.getItem('currentUser');
 
         function loadIdeas() {
@@ -137,10 +162,7 @@
                 </div>
                 <p>${idea.text}</p>
                 <div id="idea-response-container"></div>
-                <form class="response-form">
-                    <textarea class="response-input" placeholder="رد على الفكرة..." required></textarea>
-                    <button type="submit"><i class="fas fa-reply"></i> إرسال الرد</button>
-                </form>
+                ${currentUser === 'HMD' ? '<form class="response-form"><textarea class="response-input" placeholder="رد على الفكرة..." required></textarea><button type="submit"><i class="fas fa-reply"></i> إرسال الرد</button></form>' : ''}
             `;
 
             const responseContainer = newIdea.querySelector('#idea-response-container');
@@ -150,27 +172,29 @@
             responses.forEach(response => {
                 const newResponse = document.createElement('div');
                 newResponse.classList.add('response');
-                newResponse.textContent = response;
+                newResponse.innerHTML = response;
                 responseContainer.appendChild(newResponse);
             });
 
-            const responseForm = newIdea.querySelector('.response-form');
-            responseForm.addEventListener('submit', function (event) {
-                event.preventDefault();
-                const responseInput = newIdea.querySelector('.response-input');
-                const responseText = responseInput.value;
+            if (currentUser === 'HMD') {
+                const responseForm = newIdea.querySelector('.response-form');
+                responseForm.addEventListener('submit', function (event) {
+                    event.preventDefault();
+                    const responseInput = newIdea.querySelector('.response-input');
+                    const responseText = responseInput.value;
 
-                // تخزين الردود
-                responses.push(`${currentUser}: ${responseText}`);
-                localStorage.setItem(`responses_${idea.id}`, JSON.stringify(responses));
+                    // تخزين الردود
+                    responses.push(`<span>${responseText}</span> <button onclick="copyCode('${responseText}')">نسخ الكود</button>`);
+                    localStorage.setItem(`responses_${idea.id}`, JSON.stringify(responses));
 
-                const newResponse = document.createElement('div');
-                newResponse.classList.add('response');
-                newResponse.textContent = `${currentUser}: ${responseText}`;
-                responseContainer.appendChild(newResponse);
+                    const newResponse = document.createElement('div');
+                    newResponse.classList.add('response');
+                    newResponse.innerHTML = `<span>${responseText}</span> <button onclick="copyCode('${responseText}')">نسخ الكود</button>`;
+                    responseContainer.appendChild(newResponse);
 
-                responseInput.value = '';
-            });
+                    responseInput.value = '';
+                });
+            }
 
             ideasContainer.prepend(newIdea);
         }
@@ -213,6 +237,7 @@
                     document.getElementById('idea-form').style.display = 'block';
                     document.getElementById('login-form').style.display = 'none';
                     loadIdeas();
+                    logoutButton.style.display = 'block'; // إظهار زر تسجيل الخروج
                 }
             } else {
                 errorMessage.textContent = 'الرجاء إدخال اسم المستخدم';
@@ -220,10 +245,45 @@
             }
         });
 
+        function copyCode(text) {
+            navigator.clipboard.writeText(text).then(() => {
+                alert('تم نسخ الكود إلى الحافظة!');
+            });
+        }
+
+        function toggleDarkMode() {
+            const isDarkMode = document.body.classList.toggle('dark-mode');
+            document.body.style.backgroundColor = isDarkMode? '#121212'
+            : '#ffffff'; // تغيير لون الخلفية بناءً على الوضع
+            document.body.style.color = isDarkMode ? '#ffffff' : '#000000'; // تغيير لون النص
+
+            // تحديث نمط التخزين
+            localStorage.setItem('isDarkMode', isDarkMode);
+        }
+
+        // وظيفة لتسجيل الخروج
+        document.getElementById('logout-button').addEventListener('click', function() {
+            localStorage.removeItem('currentUser');
+            currentUser = null;
+            document.getElementById('idea-form').style.display = 'none';
+            document.getElementById('login-form').style.display = 'block';
+            logoutButton.style.display = 'none';
+            ideasContainer.innerHTML = ''; // مسح الأفكار
+            document.getElementById('username').value = ''; // مسح حقل اسم المستخدم
+        });
+
+        // التحقق من الوضع الليلي المحفوظ عند تحميل الصفحة
         window.onload = function() {
+            const isDarkMode = JSON.parse(localStorage.getItem('isDarkMode'));
+            if (isDarkMode) {
+                toggleDarkMode();
+            }
+
+            // التحقق من المستخدم الحالي عند تحميل الصفحة
             if (currentUser) {
                 document.getElementById('idea-form').style.display = 'block';
                 document.getElementById('login-form').style.display = 'none';
+                logoutButton.style.display = 'block'; // إظهار زر تسجيل الخروج
                 loadIdeas();
             }
         };
