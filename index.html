@@ -180,10 +180,10 @@
 
         function loadIdeas() {
             const ideas = JSON.parse(localStorage.getItem('ideas')) || [];
-            const uniqueIdeas = {}; // تخزين الأفكار الفريدة
+            const uniqueIdeas = new Set(); // استخدام Set لتخزين الأفكار الفريدة
             ideas.forEach(idea => {
-                if (!uniqueIdeas[idea.text]) { // تحقق مما إذا كانت الفكرة موجودة بالفعل
-                    uniqueIdeas[idea.text] = true; // وضع الفكرة في الكائن
+                if (!uniqueIdeas.has(idea.text)) { // تحقق مما إذا كانت الفكرة موجودة بالفعل
+                    uniqueIdeas.add(idea.text); // إضافة الفكرة إلى Set
                     displayIdea(idea);
                 }
             });
@@ -246,6 +246,7 @@
                 document.getElementById('login-form').style.display = 'none'; // إخفاء نموذج تسجيل الدخول
                 logoutButton.style.display = 'block'; // إظهار زر تسجيل الخروج
                 loadIdeas(); // تحميل الأفكار المخزنة
+                usernameInput.value = ''; // مسح حقل الإدخال
             } else {
                 alert('الرجاء إدخال اسم المستخدم.');
             }
