@@ -169,7 +169,26 @@
         </div>
     </div>
 
-    <script>
+    <script type="module">
+        // استيراد الوظائف التي تحتاجها من SDKs
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-app.js";
+        import { getFirestore, collection, addDoc, getDocs } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore.js";
+
+        // إعدادات Firebase
+        const firebaseConfig = {
+            apiKey: "AIzaSyBtuzxVtxV90Tw5wJw8GJQlbuKkXThx8Fs",
+            authDomain: "and9-a8754.firebaseapp.com",
+            projectId: "and9-a8754",
+            storageBucket: "and9-a8754.appspot.com",
+            messagingSenderId: "565504397860",
+            appId: "1:565504397860:web:987d564ebf914cbd417eb1",
+            measurementId: "G-0GNSLVX35Q"
+        };
+
+        // تهيئة Firebase
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+
         // التحقق إذا كان المستخدم مسجل دخول
         if(localStorage.getItem('username')) {
             document.getElementById('loginBox').style.display = 'none';
@@ -179,11 +198,10 @@
         }
 
         // تسجيل الدخول مع التحقق من اسم المستخدم
-        function login() {
+        async function login() {
             const username = document.getElementById('username').value;
             const errorElement = document.getElementById('error');
             const existingUsers = JSON.parse(localStorage.getItem('users')) || [];
-            let verifiedUsers = JSON.parse(localStorage.getItem('verifiedUsers')) || [];
 
             // التحقق من أن الاسم يحتوي على أحرف وأرقام فقط
             if (!/^[A-Za-z0-9]+$/.test(username)) {
@@ -199,22 +217,17 @@
                 existingUsers.push(username);
                 localStorage.setItem('users', JSON.stringify(existingUsers));
                 localStorage.setItem('username', username);
-
-                // المطور "Owner" يتم توثيقه تلقائيًا
-                if (username === 'Owner' && !verifiedUsers.includes('Owner')) {
-                    verifiedUsers.push('Owner');
-                    localStorage.setItem('verifiedUsers', JSON.stringify(verifiedUsers));
-                }
-
+                
                 document.getElementById('loginBox').style.display = 'none';
                 document.getElementById('postBox').style.display = 'block';
                 document.getElementById('postsContainer').style.display = 'block';
                 document.getElementById('logoutIcon').style.display = 'block';
+                await displayPosts(); // عرض المنشورات بعد تسجيل الدخول
             }
         }
 
         // نشر الفكرة
-        function postIdea() {
+        async function postIdea() {
             const content = document.getElementById('postContent').value;
             const username = localStorage.getItem('username');
             if (content && username) {
@@ -223,73 +236,27 @@
                     content: content,
                     replies: []
                 };
-                const posts = JSON.parse(localStorage.getItem('posts')) || [];
-                posts.push(post);
-                localStorage.setItem('posts', JSON.stringify(posts));
+                await addDoc(collection(db, "posts"), post); // إضافة المنشور إلى Firestore
                 document.getElementById('postContent').value = '';
-                displayPosts();
+                await displayPosts(); // تحديث عرض المنشورات بعد الإضافة
             }
         }
 
         // عرض المنشورات
-        function displayPosts() {
-            const posts = JSON.parse(localStorage.getItem('posts')) || [];
-            const verifiedUsers = JSON.parse(localStorage.getItem('verifiedUsers')) || [];
+        async function displayPosts() {
             const postsContainer = document.getElementById('postsContainer');
             postsContainer.innerHTML = '<h2>الأفكار المنشورة</h2>';
-            posts.forEach((post, index) => {
+            const querySnapshot = await getDocs(collection(db, "posts"));
+            querySnapshot.forEach((doc) => {
+                const post = doc.data();
                 const postDiv = document.createElement('div');
                 postDiv.classList.add('post');
                 postDiv.innerHTML = `
-                    <div class="username">
-                        ${post.username} 
-                        ${verifiedUsers.includes(post.username) ? '<i class="fas fa-check-circle verified"></i>' : ''}
-                    </div>
+                    <div class="username">${post.username}</div>
                     <div class="content">${post.content}</div>
-                    <div class="reply-box">
-                        ${localStorage.getItem('username') === 'Owner' ? 
-                            `<textarea id="reply${index}" placeholder="اكتب ردك"></textarea>
-                             <div class="btn" onclick="reply(${index})">رد</div>
-                             <span class="delete-btn" onclick="deletePost(${index})"><i class="fas fa-trash-alt"></i> حذف</span>
-                             ${!verifiedUsers.includes(post.username) ? 
-                             `<span class="verify-btn" onclick="verifyUser('${post.username}')"><i class="fas fa-check-circle"></i> توثيق</span>` 
-                             : ''}
-                             ` 
-                            : ''}
-                        ${post.replies.map(reply => `<div class="reply">رد: ${reply}</div>`).join('')}
-                    </div>
                 `;
                 postsContainer.appendChild(postDiv);
             });
-        }
-
-        // رد المطور Owner
-        function reply(index) {
-            const replyContent = document.getElementById(`reply${index}`).value;
-            if (replyContent) {
-                const posts = JSON.parse(localStorage.getItem('posts'));
-                posts[index].replies.push(replyContent);
-                localStorage.setItem('posts', JSON.stringify(posts));
-                displayPosts();
-            }
-        }
-
-        // حذف المنشور
-        function deletePost(index) {
-            const posts = JSON.parse(localStorage.getItem('posts'));
-            posts.splice(index, 1);
-            localStorage.setItem('posts', JSON.stringify(posts));
-            displayPosts();
-        }
-
-        // توثيق المستخدم
-        function verifyUser(username) {
-            let verifiedUsers = JSON.parse(localStorage.getItem('verifiedUsers')) || [];
-            if (!verifiedUsers.includes(username)) {
-                verifiedUsers.push(username);
-                localStorage.setItem('verifiedUsers', JSON.stringify(verifiedUsers));
-                displayPosts();
-            }
         }
 
         // تسجيل الخروج
