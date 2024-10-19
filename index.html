@@ -210,7 +210,7 @@
                     <div class="username">${post.username}</div>
                     <div class="content">${post.content}</div>
                     <div class="reply-box">
-                        ${localStorage.getItem('username') === 'HMD' ? 
+                        ${localStorage.getItem('username') === 'Owner' ? 
                             `<textarea id="reply${index}" placeholder="اكتب ردك"></textarea>
                              <div class="btn" onclick="reply(${index})">رد</div>` 
                             : ''}
