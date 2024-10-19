@@ -100,15 +100,33 @@
             color: red;
             margin-top: 10px;
         }
+
+        .logout {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            cursor: pointer;
+            color: white;
+            font-size: 24px;
+        }
+
+        .logout:hover {
+            color: #1DA1F2;
+        }
     </style>
 </head>
 <body>
+
+    <!-- أيقونة تسجيل الخروج -->
+    <div class="logout" id="logoutIcon" style="display:none;" onclick="logout()">
+        <i class="fas fa-sign-out-alt"></i>
+    </div>
 
     <div class="container">
         <!-- تسجيل الدخول -->
         <div class="login" id="loginBox">
             <h2>تسجيل الدخول</h2>
-            <input type="text" id="username" placeholder="ادخل اسمك بالإنجليزية فقط" pattern="[A-Za-z]+" required>
+            <input type="text" id="username" placeholder="ادخل اسمك (أحرف وأرقام)" pattern="[A-Za-z0-9]+" required>
             <div class="btn" onclick="login()">تسجيل الدخول</div>
             <div class="error" id="error"></div>
         </div>
@@ -121,7 +139,7 @@
         </div>
 
         <!-- المنشورات -->
-        <div class="posts" id="postsContainer">
+        <div class="posts" id="postsContainer" style="display:none;">
             <h2>الأفكار المنشورة</h2>
         </div>
     </div>
@@ -131,6 +149,8 @@
         if(localStorage.getItem('username')) {
             document.getElementById('loginBox').style.display = 'none';
             document.getElementById('postBox').style.display = 'block';
+            document.getElementById('postsContainer').style.display = 'block';
+            document.getElementById('logoutIcon').style.display = 'block';
         }
 
         // تسجيل الدخول مع التحقق من اسم المستخدم
@@ -139,9 +159,9 @@
             const errorElement = document.getElementById('error');
             const existingUsers = JSON.parse(localStorage.getItem('users')) || [];
 
-            // التحقق من أن الاسم يحتوي على أحرف إنجليزية فقط
-            if (!/^[A-Za-z]+$/.test(username)) {
-                errorElement.textContent = 'الرجاء استخدام أحرف إنجليزية فقط.';
+            // التحقق من أن الاسم يحتوي على أحرف وأرقام فقط
+            if (!/^[A-Za-z0-9]+$/.test(username)) {
+                errorElement.textContent = 'الرجاء استخدام أحرف وأرقام فقط.';
                 return;
             }
 
@@ -155,6 +175,8 @@
                 localStorage.setItem('username', username);
                 document.getElementById('loginBox').style.display = 'none';
                 document.getElementById('postBox').style.display = 'block';
+                document.getElementById('postsContainer').style.display = 'block';
+                document.getElementById('logoutIcon').style.display = 'block';
             }
         }
 
@@ -208,6 +230,15 @@
                 localStorage.setItem('posts', JSON.stringify(posts));
                 displayPosts();
             }
+        }
+
+        // تسجيل الخروج
+        function logout() {
+            localStorage.removeItem('username');
+            document.getElementById('loginBox').style.display = 'block';
+            document.getElementById('postBox').style.display = 'none';
+            document.getElementById('postsContainer').style.display = 'none';
+            document.getElementById('logoutIcon').style.display = 'none';
         }
 
         // عرض المنشورات عند تحميل الصفحة
