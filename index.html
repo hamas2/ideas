@@ -3,311 +3,215 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>موقع الأفكار</title>
+    <title>فكرة</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <style>
         body {
             font-family: Arial, sans-serif;
-            background-color: #121212;
-            color: #ffffff;
-            margin: 0;
-            padding: 20px;
-            transition: background-color 0.3s, color 0.3s;
-        }
-
-        header {
-            text-align: center;
-            margin-bottom: 20px;
-        }
-
-        .controls {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 20px;
-        }
-
-        .logout-button {
-            background-color: #dc3545;
+            background-color: #15202B;
             color: white;
-            border: none;
-            padding: 10px;
-            border-radius: 5px;
-            cursor: pointer;
-            font-size: 16px;
-            display: none;
-            position: absolute;
-            top: 10px;
-            right: 20px;
-            transition: transform 0.3s ease-in-out;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            animation: fadeIn 1.5s ease;
         }
 
-        .logout-button:hover {
-            transform: scale(1.1);
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+            }
+            to {
+                opacity: 1;
+            }
         }
 
-        #login-form {
-            margin-bottom: 20px;
-            background: #1e1e1e;
+        .container {
+            width: 80%;
+            max-width: 600px;
+            margin: 20px;
+        }
+
+        .login, .post-box, .posts {
+            background-color: #192734;
             padding: 20px;
+            margin-bottom: 20px;
             border-radius: 10px;
-            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            transform: translateY(-20px);
+            opacity: 0;
+            animation: slideUp 0.5s forwards;
         }
 
-        #idea-form {
-            margin-bottom: 20px;
-            background: #1e1e1e;
-            padding: 20px;
-            border-radius: 10px;
-            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
+        @keyframes slideUp {
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
         }
 
         input, textarea {
             width: 100%;
             padding: 10px;
             margin: 10px 0;
-            border: 1px solid #ccc;
             border-radius: 5px;
-            background: #333;
-            color: #fff;
+            border: none;
+            font-size: 16px;
         }
 
-        button {
-            background-color: #dc3545;
-            color: white;
-            border: none;
+        input:invalid {
+            border: 2px solid red;
+        }
+
+        .btn {
+            display: inline-block;
             padding: 10px 20px;
-            cursor: pointer;
-            border-radius: 5px;
-            transition: background 0.3s, transform 0.3s;
-            width: 100%;
-        }
-
-        button:hover {
-            background-color: #c82333;
-            transform: scale(1.05);
-        }
-
-        #ideas-list {
-            margin-top: 20px;
-        }
-
-        .idea {
-            background-color: #1e1e1e;
-            padding: 15px;
-            margin: 10px 0;
-            border-radius: 10px;
-            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.5);
-        }
-
-        .response {
-            background-color: #282828;
-            padding: 5px;
-            margin: 5px 0;
-            border-radius: 5px;
-        }
-
-        .response-form {
-            display: flex;
-            flex-direction: column;
-            margin-top: 10px;
-        }
-
-        .user-header {
-            display: flex;
-            align-items: center;
-            margin-bottom: 15px;
-        }
-
-        .dark-mode-toggle {
-            background: none;
-            border: none;
+            background-color: #1DA1F2;
             color: white;
+            border-radius: 5px;
+            text-align: center;
             cursor: pointer;
-            font-size: 20px;
+            transition: background-color 0.3s;
         }
 
-        body.light-mode {
-            background-color: #ffffff;
-            color: #000000;
+        .btn:hover {
+            background-color: #0d8edb;
         }
 
-        body.light-mode input, 
-        body.light-mode textarea {
-            background: #f8f8f8;
-            color: #000;
+        .post {
+            padding: 10px;
+            background-color: #253341;
+            margin-bottom: 10px;
+            border-radius: 5px;
         }
 
-        body.light-mode button {
-            background-color: #dc3545;
+        .post .username {
+            font-weight: bold;
+        }
+
+        .post .reply {
+            margin-left: 20px;
+            color: #8899A6;
+        }
+
+        .error {
+            color: red;
+            margin-top: 10px;
         }
     </style>
 </head>
 <body>
-    <header>
-        <h1><i class="fas fa-lightbulb"></i> شارك أفكارك</h1>
-    </header>
 
-    <div class="controls">
-        <button class="dark-mode-toggle" onclick="toggleDarkMode()">
-            <i class="fas fa-adjust"></i>
-        </button>
-        <button class="logout-button" id="logout-button">تسجيل خروج</button>
+    <div class="container">
+        <!-- تسجيل الدخول -->
+        <div class="login" id="loginBox">
+            <h2>تسجيل الدخول</h2>
+            <input type="text" id="username" placeholder="ادخل اسمك بالإنجليزية فقط" pattern="[A-Za-z]+" required>
+            <div class="btn" onclick="login()">تسجيل الدخول</div>
+            <div class="error" id="error"></div>
+        </div>
+
+        <!-- صندوق النشر -->
+        <div class="post-box" id="postBox" style="display:none;">
+            <h2>نشر فكرة</h2>
+            <textarea id="postContent" placeholder="اكتب فكرتك هنا"></textarea>
+            <div class="btn" onclick="postIdea()">نشر</div>
+        </div>
+
+        <!-- المنشورات -->
+        <div class="posts" id="postsContainer">
+            <h2>الأفكار المنشورة</h2>
+        </div>
     </div>
-
-    <div id="login-form">
-        <h2><i class="fas fa-user"></i> تسجيل دخول</h2>
-        <input type="text" id="username" placeholder="اسم المستخدم" required />
-        <button id="login-button">تسجيل الدخول</button>
-    </div>
-
-    <section id="idea-form" style="display: none;">
-        <h2><i class="fas fa-pencil-alt"></i> أضف فكرتك</h2>
-        <form id="form">
-            <textarea id="idea-input" placeholder="اكتب فكرتك هنا..." required></textarea>
-            <button type="submit"><i class="fas fa-paper-plane"></i> إرسال</button>
-        </form>
-    </section>
-    
-    <section id="ideas-list">
-        <h2><i class="fas fa-comments"></i> الأفكار</h2>
-        <div id="ideas-container"></div>
-    </section>
 
     <script>
-        const ideasContainer = document.getElementById('ideas-container');
-        const logoutButton = document.getElementById('logout-button');
-        const loginButton = document.getElementById('login-button');
-        const usernameInput = document.getElementById('username');
-        let currentUser = localStorage.getItem('currentUser');
+        // التحقق إذا كان المستخدم مسجل دخول
+        if(localStorage.getItem('username')) {
+            document.getElementById('loginBox').style.display = 'none';
+            document.getElementById('postBox').style.display = 'block';
+        }
 
-        function loadIdeas() {
-            const ideas = JSON.parse(localStorage.getItem('ideas')) || [];
-            const uniqueIdeas = new Set(); 
-            ideas.forEach(idea => {
-                if (!uniqueIdeas.has(idea.text)) {
-                    uniqueIdeas.add(idea.text); 
-                    displayIdea(idea);
-                }
+        // تسجيل الدخول مع التحقق من اسم المستخدم
+        function login() {
+            const username = document.getElementById('username').value;
+            const errorElement = document.getElementById('error');
+            const existingUsers = JSON.parse(localStorage.getItem('users')) || [];
+
+            // التحقق من أن الاسم يحتوي على أحرف إنجليزية فقط
+            if (!/^[A-Za-z]+$/.test(username)) {
+                errorElement.textContent = 'الرجاء استخدام أحرف إنجليزية فقط.';
+                return;
+            }
+
+            // التحقق من توفر اسم المستخدم
+            if (existingUsers.includes(username)) {
+                errorElement.textContent = 'اسم المستخدم مأخوذ، الرجاء اختيار اسم آخر.';
+            } else {
+                errorElement.textContent = '';
+                existingUsers.push(username);
+                localStorage.setItem('users', JSON.stringify(existingUsers));
+                localStorage.setItem('username', username);
+                document.getElementById('loginBox').style.display = 'none';
+                document.getElementById('postBox').style.display = 'block';
+            }
+        }
+
+        // نشر الفكرة
+        function postIdea() {
+            const content = document.getElementById('postContent').value;
+            const username = localStorage.getItem('username');
+            if (content && username) {
+                const post = {
+                    username: username,
+                    content: content,
+                    replies: []
+                };
+                const posts = JSON.parse(localStorage.getItem('posts')) || [];
+                posts.push(post);
+                localStorage.setItem('posts', JSON.stringify(posts));
+                document.getElementById('postContent').value = '';
+                displayPosts();
+            }
+        }
+
+        // عرض المنشورات
+        function displayPosts() {
+            const posts = JSON.parse(localStorage.getItem('posts')) || [];
+            const postsContainer = document.getElementById('postsContainer');
+            postsContainer.innerHTML = '<h2>الأفكار المنشورة</h2>';
+            posts.forEach((post, index) => {
+                const postDiv = document.createElement('div');
+                postDiv.classList.add('post');
+                postDiv.innerHTML = `
+                    <div class="username">${post.username}</div>
+                    <div class="content">${post.content}</div>
+                    <div class="reply-box">
+                        ${localStorage.getItem('username') === 'HMD' ? 
+                            `<textarea id="reply${index}" placeholder="اكتب ردك"></textarea>
+                             <div class="btn" onclick="reply(${index})">رد</div>` 
+                            : ''}
+                        ${post.replies.map(reply => `<div class="reply">رد: ${reply}</div>`).join('')}
+                    </div>
+                `;
+                postsContainer.appendChild(postDiv);
             });
         }
 
-        function displayIdea(idea) {
-            const newIdea = document.createElement('div');
-            newIdea.classList.add('idea');
-            newIdea.innerHTML = `
-                <div class="user-header">
-                    <strong>${idea.user}</strong>
-                </div>
-                <p>${idea.text}</p>
-                <div id="idea-response-container"></div>
-                ${currentUser === 'HMD' ? '<form class="response-form"><textarea class="response-input" placeholder="رد على الفكرة..." required></textarea><button type="submit"><i class="fas fa-reply"></i> إرسال الرد</button></form>' : ''}
-            `;
-
-            const responseContainer = newIdea.querySelector('#idea-response-container');
-
-            const responses = JSON.parse(localStorage.getItem(`responses_${idea.id}`)) || [];
-            responses.forEach(response => {
-                const newResponse = document.createElement('div');
-                newResponse.classList.add('response');
-                newResponse.innerHTML = response;
-                responseContainer.appendChild(newResponse);
-            });
-
-            if (currentUser === 'HMD') {
-                const responseForm = newIdea.querySelector('.response-form');
-                responseForm.addEventListener('submit', function (event) {
-                    event.preventDefault();
-                    const responseInput = newIdea.querySelector('.response-input');
-                    const responseText = responseInput.value;
-
-                    responses.push(`<span>${responseText}</span> <button onclick="copyCode('${responseText}')">نسخ الكود</button>`);
-                    localStorage.setItem(`responses_${idea.id}`, JSON.stringify(responses));
-
-                    const newResponse = document.createElement('div');
-                    newResponse.classList.add('response');
-                    newResponse.innerHTML = `<span>${responseText}</span> <button onclick="copyCode('${responseText}')">نسخ الكود</button>`;
-                    responseContainer.appendChild(newResponse);
-
-                    responseInput.value = '';
-                });
+        // رد المطور HMD
+        function reply(index) {
+            const replyContent = document.getElementById(`reply${index}`).value;
+            if (replyContent) {
+                const posts = JSON.parse(localStorage.getItem('posts'));
+                posts[index].replies.push(replyContent);
+                localStorage.setItem('posts', JSON.stringify(posts));
+                displayPosts();
             }
-
-            ideasContainer.prepend(newIdea);
         }
 
-        loginButton.addEventListener('click', function() {
-            const username = usernameInput.value.trim();
-            if (username) {
-                localStorage.setItem('currentUser', username);
-                currentUser = username;
-                document.getElementById('idea-form').style.display = 'block';
-                document.getElementById('login-form').style.display = 'none'; 
-                logoutButton.style.display = 'block'; 
-                loadIdeas();usernameInput.value = ''; // مسح حقل الإدخال
-            } else {
-                alert('الرجاء إدخال اسم المستخدم.');
-            }
-        });
-
-        // حدث تسجيل الخروج
-        logoutButton.addEventListener('click', function() {
-            localStorage.removeItem('currentUser');
-            currentUser = null;
-            document.getElementById('idea-form').style.display = 'none'; // إخفاء نموذج إرسال الأفكار
-            document.getElementById('login-form').style.display = 'block'; // إظهار نموذج تسجيل الدخول
-            logoutButton.style.display = 'none'; // إخفاء زر تسجيل الخروج
-            ideasContainer.innerHTML = ''; // مسح الأفكار المعروضة
-        });
-
-        // حدث إرسال الفكرة
-        document.getElementById('form').addEventListener('submit', function(event) {
-            event.preventDefault();
-            const ideaInput = document.getElementById('idea-input');
-            const ideaText = ideaInput.value.trim();
-            if (ideaText) {
-                const ideas = JSON.parse(localStorage.getItem('ideas')) || [];
-                const ideaId = new Date().getTime(); // استخدام الطابع الزمني كمعرف فريد
-                ideas.push({ id: ideaId, user: currentUser, text: ideaText });
-                localStorage.setItem('ideas', JSON.stringify(ideas));
-                displayIdea({ id: ideaId, user: currentUser, text: ideaText }); // عرض الفكرة الجديدة
-                ideaInput.value = ''; // مسح حقل الإدخال
-            } else {
-                alert('الرجاء إدخال فكرة.');
-            }
-        });
-
-        // وظيفة تبديل الوضع الليلي/النهاري
-        function toggleDarkMode() {
-            const isDarkMode = document.body.classList.toggle('light-mode');
-            localStorage.setItem('isDarkMode', !isDarkMode); // حفظ الوضع في التخزين
-        }
-
-        // تحميل الوضع عند بدء التحميل
-        window.onload = function() {
-            const isDarkMode = JSON.parse(localStorage.getItem('isDarkMode'));
-            if (isDarkMode) {
-                document.body.classList.remove('light-mode'); // تطبيق الوضع المظلم
-            } else {
-                document.body.classList.add('light-mode'); // تطبيق الوضع الفاتح
-            }
-
-            // التحقق من المستخدم الحالي عند تحميل الصفحة
-            if (currentUser) {
-                document.getElementById('idea-form').style.display = 'block';
-                logoutButton.style.display = 'block'; // إظهار زر تسجيل الخروج
-                loadIdeas(); // تحميل الأفكار المخزنة
-            }
-        };
-
-        // وظيفة نسخ الكود
-        function copyCode(code) {
-            navigator.clipboard.writeText(code).then(function() {
-                alert('تم نسخ الكود بنجاح!');
-            }, function(err) {
-                console.error('فشل في نسخ الكود: ', err);
-            });
-        }
+        // عرض المنشورات عند تحميل الصفحة
+        displayPosts();
     </script>
 </body>
 </html>
