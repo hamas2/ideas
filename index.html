@@ -20,7 +20,25 @@
             margin-bottom: 20px;
         }
 
-        #login-form, #idea-form {
+        .controls {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .logout-button {
+            background-color: #dc3545; /* لون زر تسجيل الخروج */
+            color: white;
+            border: none;
+            padding: 10px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            display: none; /* مخفي بشكل افتراضي */
+        }
+
+        #idea-form {
             margin-bottom: 20px;
             background: #1e1e1e; /* لون خلفية للنماذج */
             padding: 20px;
@@ -39,7 +57,7 @@
         }
 
         button {
-            background-color: #007BFF;
+            background-color: #dc3545; /* لون الزر */
             color: white;
             border: none;
             padding: 10px 20px;
@@ -50,7 +68,7 @@
         }
 
         button:hover {
-            background-color: #0056b3;
+            background-color: #c82333; /* لون الزر عند التحويم */
         }
 
         #ideas-list {
@@ -89,26 +107,12 @@
             font-size: 0.9em;
         }
 
-        .controls {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 20px;
-        }
-
-        .dark-mode-toggle, .logout-button {
+        .dark-mode-toggle {
             background: none;
             border: none;
             color: white;
             cursor: pointer;
             font-size: 20px;
-        }
-
-        .logout-button {
-            background-color: #dc3545;
-            padding: 10px;
-            border-radius: 5px;
-            display: none; /* مخفي بشكل افتراضي */
         }
 
         /* نمط الوضع النهاري */
@@ -124,7 +128,7 @@
         }
 
         body.light-mode button {
-            background-color: #007BFF;
+            background-color: #dc3545; /* لون الزر في الوضع النهاري */
         }
     </style>
 </head>
@@ -139,13 +143,6 @@
         </button>
         <button class="logout-button" id="logout-button">تسجيل خروج</button>
     </div>
-
-    <section id="login-form">
-        <h2>تسجيل الدخول</h2>
-        <input type="text" id="username" placeholder="اسم المستخدم" required />
-        <button id="login-button">تسجيل الدخول</button>
-        <div id="error-message" class="error" style="display: none;"></div>
-    </section>
 
     <section id="idea-form" style="display: none;">
         <h2><i class="fas fa-pencil-alt"></i> أضف فكرتك</h2>
@@ -162,13 +159,18 @@
 
     <script>
         const ideasContainer = document.getElementById('ideas-container');
-        const errorMessage = document.getElementById('error-message');
         const logoutButton = document.getElementById('logout-button');
         let currentUser = localStorage.getItem('currentUser');
 
         function loadIdeas() {
             const ideas = JSON.parse(localStorage.getItem('ideas')) || [];
-            ideas.forEach(idea => displayIdea(idea));
+            const uniqueIdeas = {}; // تخزين الأفكار الفريدة
+            ideas.forEach(idea => {
+                if (!uniqueIdeas[idea.text]) { // تحقق مما إذا كانت الفكرة موجودة بالفعل
+                    uniqueIdeas[idea.text] = true; // وضع الفكرة في الكائن
+                    displayIdea(idea);
+                }
+            });
         }
 
         function displayIdea(idea) {
@@ -235,31 +237,6 @@
             ideaInput.value = '';
         });
 
-        document.getElementById('login-button').addEventListener('click', function() {
-            const username = document.getElementById('username').value;
-
-            if (username) {
-                const users = JSON.parse(localStorage.getItem('users')) || [];
-                if (users.includes(username)) {
-                    errorMessage.textContent = 'هذا الاسم مستخدم بالفعل. حاول استخدام اسم آخر.';
-                    errorMessage.style.display = 'block';
-                } else {
-                    currentUser = username;
-                    localStorage.setItem('currentUser', currentUser);
-
-                    // تخزين اسم المستخدم
-                    users.push(username);
-                    localStorage.setItem('users', JSON.stringify(users));
-
-                    errorMessage.style.display = 'none';
-                    document.getElementById('idea-form').style.display = 'block';
-                    document.getElementById('login-form').style.display = 'none';
-                    loadIdeas();
-                    logoutButton.style.display = 'block'; // إظهار زر تسجيل الخروج
-                }
-            }
-        });
-
         function toggleDarkMode() {
             const isDarkMode = document.body.classList.toggle('light-mode');
             localStorage.setItem('isDarkMode', JSON.stringify(!isDarkMode)); // تخزين الوضع في التخزين المحلي
@@ -270,7 +247,7 @@
             localStorage.removeItem('currentUser');
             currentUser = null;
             document.getElementById('idea-form').style.display = 'none';
-            document.getElementById('login-form').style.display = 'block';
+            document.getElementById('login-form').style.display = 'none'; // إخفاء نموذج تسجيل الدخول
             logoutButton.style.display = 'none';
             ideasContainer.innerHTML = ''; // مسح الأفكار
             document.getElementById('username').value = ''; // مسح حقل اسم المستخدم
@@ -278,7 +255,7 @@
 
         // التحقق من الوضع الليلي المحفوظ عند تحميل الصفحة
         window.onload = function() {
-            const isDarkMode = JSON.parse(localStorage.getItem('isDarkMode'));
+            const isDarkMode= JSON.parse(localStorage.getItem('isDarkMode'));
             if (isDarkMode) {
                 document.body.classList.remove('light-mode'); // تطبيق الوضع المظلم
             } else {
@@ -288,9 +265,8 @@
             // التحقق من المستخدم الحالي عند تحميل الصفحة
             if (currentUser) {
                 document.getElementById('idea-form').style.display = 'block';
-                document.getElementById('login-form').style.display = 'none';
                 logoutButton.style.display = 'block'; // إظهار زر تسجيل الخروج
-                loadIdeas();
+                loadIdeas(); // تحميل الأفكار المخزنة
             }
         };
 
