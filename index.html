@@ -4,26 +4,35 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>موقع الأفكار</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <style>
         body {
             font-family: Arial, sans-serif;
-            background-color: #121212;
-            color: white;
+            background-color: #f0f0f0;
+            color: #333;
             margin: 0;
             padding: 20px;
         }
 
         header {
             text-align: center;
-        }
-
-        #idea-form {
             margin-bottom: 20px;
         }
 
-        #idea-input {
+        #login-form, #idea-form {
+            margin-bottom: 20px;
+            background: #fff;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+        }
+
+        input, textarea {
             width: 100%;
-            height: 100px;
+            padding: 10px;
+            margin: 10px 0;
+            border: 1px solid #ccc;
+            border-radius: 5px;
         }
 
         button {
@@ -32,6 +41,8 @@
             border: none;
             padding: 10px 20px;
             cursor: pointer;
+            border-radius: 5px;
+            transition: background 0.3s;
         }
 
         button:hover {
@@ -43,104 +54,163 @@
         }
 
         .idea {
-            background-color: #1E1E1E;
-            padding: 10px;
+            background-color: #fff;
+            padding: 15px;
             margin: 10px 0;
-            border-radius: 5px;
+            border-radius: 10px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
         }
 
         .response {
-            background-color: #2A2A2A;
+            background-color: #f9f9f9;
             padding: 5px;
             margin: 5px 0;
-            border-radius: 3px;
-            font-style: italic; /* تنسيق النص ليبدو مختلفًا */
+            border-radius: 5px;
+        }
+
+        .response-form {
+            display: flex;
+            flex-direction: column;
+            margin-top: 10px;
+        }
+
+        .profile-pic {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            margin-right: 10px;
+        }
+
+        .user-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+
+        .error {
+            color: red;
+            font-size: 0.9em;
         }
     </style>
 </head>
 <body>
     <header>
-        <h1>شارك أفكارك</h1>
+        <h1><i class="fas fa-lightbulb"></i> شارك أفكارك</h1>
     </header>
-    <main>
-        <section id="idea-form">
-            <h2>أضف فكرتك</h2>
-            <form id="form">
-                <textarea id="idea-input" placeholder="اكتب فكرتك هنا..." required></textarea>
-                <button type="submit">إرسال</button>
-            </form>
-        </section>
-        <section id="ideas-list">
-            <h2>الأفكار</h2>
-            <div id="ideas-container"></div>
-        </section>
-    </main>
+
+    <section id="login-form">
+        <h2>تسجيل الدخول</h2>
+        <input type="text" id="username" placeholder="اسم المستخدم" required />
+        <button id="login-button">تسجيل الدخول</button>
+        <div id="error-message" class="error" style="display: none;"></div>
+    </section>
+
+    <section id="idea-form" style="display: none;">
+        <h2><i class="fas fa-pencil-alt"></i> أضف فكرتك</h2>
+        <form id="form">
+            <textarea id="idea-input" placeholder="اكتب فكرتك هنا..." required></textarea>
+            <button type="submit"><i class="fas fa-paper-plane"></i> إرسال</button>
+        </form>
+    </section>
+    
+    <section id="ideas-list">
+        <h2><i class="fas fa-comments"></i> الأفكار</h2>
+        <div id="ideas-container"></div>
+    </section>
+
     <script>
         const ideasContainer = document.getElementById('ideas-container');
+        const errorMessage = document.getElementById('error-message');
+        let currentUser = localStorage.getItem('currentUser');
 
-        // تحميل الأفكار من التخزين المحلي
         function loadIdeas() {
             const ideas = JSON.parse(localStorage.getItem('ideas')) || [];
             ideas.forEach(idea => displayIdea(idea));
         }
 
-        // عرض فكرة جديدة
         function displayIdea(idea) {
             const newIdea = document.createElement('div');
             newIdea.classList.add('idea');
             newIdea.innerHTML = `
+                <div class="user-header">
+                    <strong>${idea.user}</strong>
+                </div>
                 <p>${idea.text}</p>
                 <div id="idea-response-container"></div>
                 <form class="response-form">
-                    <input type="text" class="developer-name" placeholder="اسم المطور" required />
                     <textarea class="response-input" placeholder="رد على الفكرة..." required></textarea>
-                    <button type="submit">إرسال الرد</button>
+                    <button type="submit"><i class="fas fa-reply"></i> إرسال الرد</button>
                 </form>
             `;
 
             const responseForm = newIdea.querySelector('.response-form');
             responseForm.addEventListener('submit', function (event) {
                 event.preventDefault();
-                const developerNameInput = newIdea.querySelector('.developer-name');
                 const responseInput = newIdea.querySelector('.response-input');
                 const responseText = responseInput.value;
-                const developerName = developerNameInput.value;
 
-                // إضافة الرد إلى قائمة الردود
                 const responseContainer = newIdea.querySelector('#idea-response-container');
                 const newResponse = document.createElement('div');
                 newResponse.classList.add('response');
-                newResponse.textContent = `${developerName}: ${responseText}`; // عرض اسم المطور مع الرد
-                responseContainer.appendChild(newResponse); // إضافة الرد إلى قسم الردود
+                newResponse.textContent = `${currentUser}: ${responseText}`;
+                responseContainer.appendChild(newResponse);
 
-                // إعادة تعيين حقل الإدخال
                 responseInput.value = '';
-                developerNameInput.value = ''; // إعادة تعيين حقل اسم المطور
             });
 
-            ideasContainer.prepend(newIdea); // إضافة الفكرة الجديدة في أعلى القائمة
+            ideasContainer.prepend(newIdea);
         }
 
-        // إضافة فكرة جديدة
         document.getElementById('form').addEventListener('submit', function (event) {
             event.preventDefault();
             const ideaInput = document.getElementById('idea-input');
             const ideaText = ideaInput.value;
 
-            // تخزين الفكرة في التخزين المحلي
             const ideas = JSON.parse(localStorage.getItem('ideas')) || [];
-            ideas.push({ text: ideaText });
+            ideas.push({ 
+                text: ideaText, 
+                user: currentUser 
+            });
             localStorage.setItem('ideas', JSON.stringify(ideas));
 
-            // عرض الفكرة الجديدة
-            displayIdea({ text: ideaText });
-
-            // إعادة تعيين حقل الإدخال
+            displayIdea({ text: ideaText, user: currentUser });
             ideaInput.value = '';
         });
 
-        // تحميل الأفكار عند تحميل الصفحة
-        window.onload = loadIdeas;
+        document.getElementById('login-button').addEventListener('click', function() {
+            const username = document.getElementById('username').value;
+
+            if (username) {
+                const users = JSON.parse(localStorage.getItem('users')) || [];
+                if (users.includes(username)) {
+                    errorMessage.textContent = 'هذا الاسم مستخدم بالفعل. حاول استخدام اسم آخر.';
+                    errorMessage.style.display = 'block';
+                } else {
+                    currentUser = username;
+                    localStorage.setItem('currentUser', currentUser);
+
+                    // تخزين اسم المستخدم
+                    users.push(username);
+                    localStorage.setItem('users', JSON.stringify(users));
+
+                    errorMessage.style.display = 'none';
+                    document.getElementById('idea-form').style.display = 'block';
+                    document.getElementById('login-form').style.display = 'none';
+                    loadIdeas();
+                }
+            } else {
+                errorMessage.textContent = 'الرجاء إدخال اسم المستخدم';
+                errorMessage.style.display = 'block';
+            }
+        });
+
+        window.onload = function() {
+            if (currentUser) {
+                document.getElementById('idea-form').style.display = 'block';
+                document.getElementById('login-form').style.display = 'none';
+                loadIdeas();
+            }
+        };
     </script>
 </body>
 </html>
