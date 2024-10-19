@@ -38,6 +38,14 @@
             display: none; /* مخفي بشكل افتراضي */
         }
 
+        #login-form {
+            margin-bottom: 20px;
+            background: #1e1e1e; /* لون خلفية لنموذج تسجيل الدخول */
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
+        }
+
         #idea-form {
             margin-bottom: 20px;
             background: #1e1e1e; /* لون خلفية للنماذج */
@@ -144,6 +152,12 @@
         <button class="logout-button" id="logout-button">تسجيل خروج</button>
     </div>
 
+    <div id="login-form">
+        <h2><i class="fas fa-user"></i> تسجيل دخول</h2>
+        <input type="text" id="username" placeholder="اسم المستخدم" required />
+        <button id="login-button">تسجيل الدخول</button>
+    </div>
+
     <section id="idea-form" style="display: none;">
         <h2><i class="fas fa-pencil-alt"></i> أضف فكرتك</h2>
         <form id="form">
@@ -160,6 +174,8 @@
     <script>
         const ideasContainer = document.getElementById('ideas-container');
         const logoutButton = document.getElementById('logout-button');
+        const loginButton = document.getElementById('login-button');
+        const usernameInput = document.getElementById('username');
         let currentUser = localStorage.getItem('currentUser');
 
         function loadIdeas() {
@@ -219,43 +235,58 @@
             ideasContainer.prepend(newIdea);
         }
 
-        document.getElementById('form').addEventListener('submit', function (event) {
-            event.preventDefault();
-            const ideaInput = document.getElementById('idea-input');
-            const ideaText = ideaInput.value;
-
-            const ideas = JSON.parse(localStorage.getItem('ideas')) || [];
-            const newIdea = { 
-                id: Date.now(), // تعيين معرف فريد للفكرة
-                text: ideaText, 
-                user: currentUser 
-            };
-            ideas.push(newIdea);
-            localStorage.setItem('ideas', JSON.stringify(ideas));
-
-            displayIdea(newIdea);
-            ideaInput.value = '';
+        // حدث تسجيل الدخول
+        loginButton.addEventListener('click', function() {
+            const username = usernameInput.value.trim();
+            if (username) {
+                // تخزين اسم المستخدم
+                localStorage.setItem('currentUser', username);
+                currentUser = username;
+                document.getElementById('idea-form').style.display = 'block';
+                document.getElementById('login-form').style.display = 'none'; // إخفاء نموذج تسجيل الدخول
+                logoutButton.style.display = 'block'; // إظهار زر تسجيل الخروج
+                loadIdeas(); // تحميل الأفكار المخزنة
+            } else {
+                alert('الرجاء إدخال اسم المستخدم.');
+            }
         });
 
-        function toggleDarkMode() {
-            const isDarkMode = document.body.classList.toggle('light-mode');
-            localStorage.setItem('isDarkMode', JSON.stringify(!isDarkMode)); // تخزين الوضع في التخزين المحلي
-        }
-
-        // وظيفة لتسجيل الخروج
+        // حدث تسجيل الخروج
         logoutButton.addEventListener('click', function() {
             localStorage.removeItem('currentUser');
             currentUser = null;
-            document.getElementById('idea-form').style.display = 'none';
-            document.getElementById('login-form').style.display = 'none'; // إخفاء نموذج تسجيل الدخول
-            logoutButton.style.display = 'none';
-            ideasContainer.innerHTML = ''; // مسح الأفكار
-            document.getElementById('username').value = ''; // مسح حقل اسم المستخدم
+            document.getElementById('idea-form').style.display = 'none'; // إخفاء نموذج إرسال الأفكار
+            document.getElementById('login-form').style.display = 'block'; // إظهار نموذج تسجيل الدخول
+            logoutButton.style.display = 'none'; // إخفاء زر تسجيل الخروج
+            ideasContainer.innerHTML = ''; // مسح الأفكار المعروضة
         });
 
-        // التحقق من الوضع الليلي المحفوظ عند تحميل الصفحة
+        // حدث إرسال الفكرة
+        document.getElementById('form').addEventListener('submit', function(event) {
+            event.preventDefault();
+            const ideaInput = document.getElementById('idea-input');
+            const ideaText = ideaInput.value.trim();
+            if (ideaText) {
+                const ideas = JSON.parse(localStorage.getItem('ideas')) || [];
+                const ideaId = new Date().getTime(); // استخدام الطابع الزمني كمعرف فريد
+                ideas.push({ id: ideaId, user: currentUser, text: ideaText });
+                localStorage.setItem('ideas', JSON.stringify(ideas));
+                displayIdea({ id: ideaId, user: currentUser, text: ideaText }); // عرض الفكرة الجديدة
+                ideaInput.value = ''; // مسح حقل الإدخال
+            } else {
+                alert('الرجاء إدخال فكرة.');
+            }
+        });
+
+        // وظيفة تبديل الوضع الليلي/النهاري
+        function toggleDarkMode() {
+            const isDarkMode = document.body.classList.toggle('light-mode');
+            localStorage.setItem('isDarkMode', !isDarkMode); // حفظ الوضع في التخزين
+        }
+
+        // تحميل الوضع عند بدء التحميل
         window.onload = function() {
-            const isDarkMode= JSON.parse(localStorage.getItem('isDarkMode'));
+            const isDarkMode = JSON.parse(localStorage.getItem('isDarkMode'));
             if (isDarkMode) {
                 document.body.classList.remove('light-mode'); // تطبيق الوضع المظلم
             } else {
