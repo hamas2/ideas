@@ -91,6 +91,11 @@
             font-weight: bold;
         }
 
+        .post .username .verified {
+            color: #1DA1F2;
+            margin-left: 5px;
+        }
+
         .post .reply {
             margin-left: 20px;
             color: #8899A6;
@@ -112,6 +117,26 @@
 
         .logout:hover {
             color: #1DA1F2;
+        }
+
+        .delete-btn {
+            color: red;
+            cursor: pointer;
+            margin-left: 10px;
+        }
+
+        .delete-btn:hover {
+            color: darkred;
+        }
+
+        .verify-btn {
+            color: #1DA1F2;
+            cursor: pointer;
+            margin-left: 10px;
+        }
+
+        .verify-btn:hover {
+            color: #0d8edb;
         }
     </style>
 </head>
@@ -158,6 +183,7 @@
             const username = document.getElementById('username').value;
             const errorElement = document.getElementById('error');
             const existingUsers = JSON.parse(localStorage.getItem('users')) || [];
+            let verifiedUsers = JSON.parse(localStorage.getItem('verifiedUsers')) || [];
 
             // التحقق من أن الاسم يحتوي على أحرف وأرقام فقط
             if (!/^[A-Za-z0-9]+$/.test(username)) {
@@ -173,6 +199,13 @@
                 existingUsers.push(username);
                 localStorage.setItem('users', JSON.stringify(existingUsers));
                 localStorage.setItem('username', username);
+
+                // المطور "Owner" يتم توثيقه تلقائيًا
+                if (username === 'Owner' && !verifiedUsers.includes('Owner')) {
+                    verifiedUsers.push('Owner');
+                    localStorage.setItem('verifiedUsers', JSON.stringify(verifiedUsers));
+                }
+
                 document.getElementById('loginBox').style.display = 'none';
                 document.getElementById('postBox').style.display = 'block';
                 document.getElementById('postsContainer').style.display = 'block';
@@ -201,18 +234,27 @@
         // عرض المنشورات
         function displayPosts() {
             const posts = JSON.parse(localStorage.getItem('posts')) || [];
+            const verifiedUsers = JSON.parse(localStorage.getItem('verifiedUsers')) || [];
             const postsContainer = document.getElementById('postsContainer');
             postsContainer.innerHTML = '<h2>الأفكار المنشورة</h2>';
             posts.forEach((post, index) => {
                 const postDiv = document.createElement('div');
                 postDiv.classList.add('post');
                 postDiv.innerHTML = `
-                    <div class="username">${post.username}</div>
+                    <div class="username">
+                        ${post.username} 
+                        ${verifiedUsers.includes(post.username) ? '<i class="fas fa-check-circle verified"></i>' : ''}
+                    </div>
                     <div class="content">${post.content}</div>
                     <div class="reply-box">
                         ${localStorage.getItem('username') === 'Owner' ? 
                             `<textarea id="reply${index}" placeholder="اكتب ردك"></textarea>
-                             <div class="btn" onclick="reply(${index})">رد</div>` 
+                             <div class="btn" onclick="reply(${index})">رد</div>
+                             <span class="delete-btn" onclick="deletePost(${index})"><i class="fas fa-trash-alt"></i> حذف</span>
+                             ${!verifiedUsers.includes(post.username) ? 
+                             `<span class="verify-btn" onclick="verifyUser('${post.username}')"><i class="fas fa-check-circle"></i> توثيق</span>` 
+                             : ''}
+                             ` 
                             : ''}
                         ${post.replies.map(reply => `<div class="reply">رد: ${reply}</div>`).join('')}
                     </div>
@@ -221,13 +263,31 @@
             });
         }
 
-        // رد المطور HMD
+        // رد المطور Owner
         function reply(index) {
             const replyContent = document.getElementById(`reply${index}`).value;
             if (replyContent) {
                 const posts = JSON.parse(localStorage.getItem('posts'));
                 posts[index].replies.push(replyContent);
                 localStorage.setItem('posts', JSON.stringify(posts));
+                displayPosts();
+            }
+        }
+
+        // حذف المنشور
+        function deletePost(index) {
+            const posts = JSON.parse(localStorage.getItem('posts'));
+            posts.splice(index, 1);
+            localStorage.setItem('posts', JSON.stringify(posts));
+            displayPosts();
+        }
+
+        // توثيق المستخدم
+        function verifyUser(username) {
+            let verifiedUsers = JSON.parse(localStorage.getItem('verifiedUsers')) || [];
+            if (!verifiedUsers.includes(username)) {
+                verifiedUsers.push(username);
+                localStorage.setItem('verifiedUsers', JSON.stringify(verifiedUsers));
                 displayPosts();
             }
         }
