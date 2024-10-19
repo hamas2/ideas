@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="ar">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>موقع الأفكار</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #121212;
+            color: white;
+            margin: 0;
+            padding: 20px;
+        }
+
+        header {
+            text-align: center;
+        }
+
+        #idea-form {
+            margin-bottom: 20px;
+        }
+
+        #idea-input {
+            width: 100%;
+            height: 100px;
+        }
+
+        button {
+            background-color: #007BFF;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background-color: #0056b3;
+        }
+
+        #ideas-list {
+            margin-top: 20px;
+        }
+
+        .idea {
+            background-color: #1E1E1E;
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 5px;
+        }
+
+        .response {
+            background-color: #2A2A2A;
+            padding: 5px;
+            margin: 5px 0;
+            border-radius: 3px;
+            font-style: italic; /* تنسيق النص ليبدو مختلفًا */
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>شارك أفكارك</h1>
+    </header>
+    <main>
+        <section id="idea-form">
+            <h2>أضف فكرتك</h2>
+            <form id="form">
+                <textarea id="idea-input" placeholder="اكتب فكرتك هنا..." required></textarea>
+                <button type="submit">إرسال</button>
+            </form>
+        </section>
+        <section id="ideas-list">
+            <h2>الأفكار</h2>
+            <div id="ideas-container"></div>
+        </section>
+    </main>
+    <script>
+        const ideasContainer = document.getElementById('ideas-container');
+
+        // تحميل الأفكار من التخزين المحلي
+        function loadIdeas() {
+            const ideas = JSON.parse(localStorage.getItem('ideas')) || [];
+            ideas.forEach(idea => displayIdea(idea));
+        }
+
+        // عرض فكرة جديدة
+        function displayIdea(idea) {
+            const newIdea = document.createElement('div');
+            newIdea.classList.add('idea');
+            newIdea.innerHTML = `
+                <p>${idea.text}</p>
+                <div id="idea-response-container"></div>
+                <form class="response-form">
+                    <input type="text" class="developer-name" placeholder="اسم المطور" required />
+                    <textarea class="response-input" placeholder="رد على الفكرة..." required></textarea>
+                    <button type="submit">إرسال الرد</button>
+                </form>
+            `;
+
+            const responseForm = newIdea.querySelector('.response-form');
+            responseForm.addEventListener('submit', function (event) {
+                event.preventDefault();
+                const developerNameInput = newIdea.querySelector('.developer-name');
+                const responseInput = newIdea.querySelector('.response-input');
+                const responseText = responseInput.value;
+                const developerName = developerNameInput.value;
+
+                // إضافة الرد إلى قائمة الردود
+                const responseContainer = newIdea.querySelector('#idea-response-container');
+                const newResponse = document.createElement('div');
+                newResponse.classList.add('response');
+                newResponse.textContent = `${developerName}: ${responseText}`; // عرض اسم المطور مع الرد
+                responseContainer.appendChild(newResponse); // إضافة الرد إلى قسم الردود
+
+                // إعادة تعيين حقل الإدخال
+                responseInput.value = '';
+                developerNameInput.value = ''; // إعادة تعيين حقل اسم المطور
+            });
+
+            ideasContainer.prepend(newIdea); // إضافة الفكرة الجديدة في أعلى القائمة
+        }
+
+        // إضافة فكرة جديدة
+        document.getElementById('form').addEventListener('submit', function (event) {
+            event.preventDefault();
+            const ideaInput = document.getElementById('idea-input');
+            const ideaText = ideaInput.value;
+
+            // تخزين الفكرة في التخزين المحلي
+            const ideas = JSON.parse(localStorage.getItem('ideas')) || [];
+            ideas.push({ text: ideaText });
+            localStorage.setItem('ideas', JSON.stringify(ideas));
+
+            // عرض الفكرة الجديدة
+            displayIdea({ text: ideaText });
+
+            // إعادة تعيين حقل الإدخال
+            ideaInput.value = '';
+        });
+
+        // تحميل الأفكار عند تحميل الصفحة
+        window.onload = loadIdeas;
+    </script>
+</body>
+</html>
